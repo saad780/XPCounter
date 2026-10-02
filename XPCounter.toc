@@ -1,8 +1,8 @@
 ## Interface: 16001
 ## Title: XP Counter
-## Notes: Reports XP, reputation, and estimated kills in chat with optional floating text.
+## Notes: Reports XP, reputation, and kill/time estimates in chat with optional floating text.
 ## Author: Saad
-## Version: 1.2.0
+## Version: 1.3.0
 ## AllowLoadGameType: camelot
 ## SavedVariables: XPCounterDB
 

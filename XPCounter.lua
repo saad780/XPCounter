@@ -8,8 +8,13 @@ local reputation = {}
 local factionIDs = {}
 local markers = {}
 local pendingXP = {}
+local xpHistory = {}
 local scanScheduled = false
 local initialized = false
+local paceNoticeShown = false
+
+local PACE_WINDOW_SECONDS = 300
+local MIN_PACE_SECONDS = 30
 
 -- The eight original race capital reputations share the standing discount.
 -- Faction IDs are stable; using IDs also works with localized faction names.
@@ -88,6 +93,31 @@ local function classifyXP(at)
     return chosen.kind
 end
 
+local function recordPace(amount, at)
+    xpHistory[#xpHistory + 1] = { amount = amount, time = at }
+    while xpHistory[1] and at - xpHistory[1].time > PACE_WINDOW_SECONDS do
+        table.remove(xpHistory, 1)
+    end
+    local elapsed = at - xpHistory[1].time
+    if elapsed < MIN_PACE_SECONDS then return nil end
+
+    local totalXP = 0
+    for _, entry in ipairs(xpHistory) do
+        totalXP = totalXP + entry.amount
+    end
+    return totalXP * 60 / elapsed
+end
+
+local function formatDuration(seconds)
+    local wholeSeconds = math.ceil(seconds)
+    if wholeSeconds < 60 then return wholeSeconds .. "s" end
+    local minutes = math.floor(wholeSeconds / 60)
+    local remainder = wholeSeconds % 60
+    if minutes < 60 then return minutes .. "m " .. remainder .. "s" end
+    local hours = math.floor(minutes / 60)
+    return hours .. "h " .. (minutes % 60) .. "m"
+end
+
 local function flushXP()
     local now = GetTime()
     for _, gain in ipairs(pendingXP) do
@@ -100,6 +130,14 @@ local function flushXP()
                 local kills = math.ceil(gain.remaining / gain.amount)
                 message = message .. " - about " .. number(kills) .. " more kills at this XP rate"
                 popupMessage = popupMessage .. " - " .. number(kills) .. " more"
+                if gain.xpPerMinute then
+                    local duration = formatDuration(gain.remaining * 60 / gain.xpPerMinute)
+                    message = message .. "; ~" .. duration .. " at " .. number(math.floor(gain.xpPerMinute + 0.5)) .. " XP/min"
+                    popupMessage = popupMessage .. " (~" .. duration .. ")"
+                elseif not paceNoticeShown then
+                    message = message .. "; timing starts after 30 seconds of XP gains"
+                    paceNoticeShown = true
+                end
             end
         end
         say(message, popupMessage)
@@ -143,7 +181,9 @@ local function captureXP()
     previousXP, previousXPMax, previousLevel = currentXP, maximumXP, level
     if gain and gain > 0 then
         local remaining = maximumXP > 0 and math.max(0, maximumXP - currentXP) or nil
-        pendingXP[#pendingXP + 1] = { amount = gain, time = GetTime(), level = level, remaining = remaining }
+        local at = GetTime()
+        local xpPerMinute = recordPace(gain, at)
+        pendingXP[#pendingXP + 1] = { amount = gain, time = at, level = level, remaining = remaining, xpPerMinute = xpPerMinute }
         scheduleXPFlush()
     end
 end
@@ -221,6 +261,8 @@ frame:SetScript("OnEvent", function(_, event, ...)
     if event == "PLAYER_ENTERING_WORLD" then
         if not initialized then
             initialized = true
+            wipe(xpHistory)
+            paceNoticeShown = false
             previousXP, previousXPMax, previousLevel = nil, nil, nil
             captureXP()
             scanReputation()

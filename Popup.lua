@@ -45,7 +45,7 @@ end)
 local function preview()
     if not db or not db.popupsEnabled then return end
     popupSerial = popupSerial + 1
-    body:SetText(moving and "Drag text; right-click to finish" or "53 XP - 3 more")
+    body:SetText(moving and "Drag text; right-click to finish" or "53 XP - 3 more (~2m)")
     popup:Show()
     if not moving then
         local thisPopup = popupSerial
