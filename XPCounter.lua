@@ -122,7 +122,7 @@ local function flushXP()
     local now = GetTime()
     for _, gain in ipairs(pendingXP) do
         local source = classifyXP(gain.time)
-        local label = source == "kill" and "Kill" or (source == "quest" and "Quest" or (source == "exploration" and "Exploration" or "Other"))
+        local label = source == "kill" and "Kill" or (source == "quest" and "Quest" or (source == "exploration" and "Discovery" or "Other"))
         local message = label .. ": +" .. number(gain.amount) .. " XP (level " .. gain.level .. ")"
         local popupMessage = number(gain.amount) .. " XP"
         if source == "kill" then
@@ -282,7 +282,8 @@ frame:SetScript("OnEvent", function(_, event, ...)
         rememberMarker("kill")
     elseif event == "UI_INFO_MESSAGE" then
         local messageType = ...
-        if messageType == 408 then -- ERR_ZONE_EXPLORED_XP in Forever
+        -- Resolve the message name because numeric IDs can shift between builds.
+        if GetGameMessageInfo(messageType) == "ERR_ZONE_EXPLORED_XP" then
             rememberMarker("exploration")
         end
     elseif event == "UPDATE_FACTION" or event == "CHAT_MSG_COMBAT_FACTION_CHANGE" or event == "FACTION_STANDING_CHANGED" then

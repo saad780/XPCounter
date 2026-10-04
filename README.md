@@ -17,6 +17,7 @@ Open **Game Menu → Options → AddOns → XP Counter**, or type `/xpc`.
 
 ## Notes
 
+- Area discovery XP is labeled `Discovery: +<amount> XP`. Discovery detection uses the game's message name so changing message IDs do not mislabel it as `Other`.
 - This build targets Forever interface 16001 and uses Blizzard's `C_Reputation` API and character XP events.
 - The kill estimate assumes each future kill awards the same XP as the one just received. Rested XP, mob level, group size, and buffs can change it.
 - The time estimate uses all XP earned over the last five minutes, including quests and exploration, divided by the time observed in that window. It appears after at least 30 seconds of XP history. It resets when the UI reloads, and it may swing after a large XP reward or a long break.
