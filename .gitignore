@@ -1,3 +1,22 @@
 *.zip
 node_modules/
 Thumbs.db
+
+# Local game data, credentials, backups, and machine-specific settings.
+**/WTF/
+**/SavedVariables/
+.env
+.env.*
+.ssh/
+.aws/
+.vscode/
+.idea/
+credentials.*
+secrets.*
+*.local
+*.log
+*.bak
+*.bundle
+*.7z
+__pycache__/
+.venv/
